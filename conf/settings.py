@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 
 import os
@@ -5,23 +6,13 @@ from dotenv import load_dotenv
 
 load_dotenv()  # Загружаем переменные окружения из .env файла
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECRET_KEY = os.getenv("SECRET_KEY", 'django-insecure-default-key')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['*']
-
-
-# Application definition
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -38,8 +29,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'phonenumber_field',
 
-    # Local apps
-    'core',
+    # Local
+    'core.apps.CoreConfig',
 ]
 
 MIDDLEWARE = [
@@ -80,11 +71,11 @@ WSGI_APPLICATION = 'conf.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.getenv("NAME"),
-        "USER": os.getenv("USER"),
-        "PASSWORD": os.getenv("PASSWORD"),
-        "HOST": os.getenv("HOST"),
-        "PORT": os.getenv("PORT"),
+        "NAME": os.getenv("NAME", 'referral_db'),
+        "USER": os.getenv("USER", 'skypro'),
+        "PASSWORD": os.getenv("PASSWORD", 'skypro'),
+        "HOST": os.getenv("HOST", 'localhost'),
+        "PORT": os.getenv("PORT", '5432'),
     }
 }
 
@@ -141,21 +132,29 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
+
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ),
-    'DEFAULT_FILTER_BACKENDS': (
-        'django_filters.rest_framework.DjangoFilterBackend',
-    ),
+
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ),
+    # 'DEFAULT_FILTER_BACKENDS': (
+    #     'django_filters.rest_framework.DjangoFilterBackend',
+    # ),
 }
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
+
+
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True  # Для разработки, в продакшене нужно ограничить
 CORS_ALLOW_CREDENTIALS = True
-
-# SMS Aero settings (если будете использовать)
-SMSAERO_EMAIL = os.getenv('SMSAERO_EMAIL')
-SMSAERO_API_KEY = os.getenv('SMSAERO_API_KEY')
 
 # Phone number settings
 PHONENUMBER_DEFAULT_REGION = 'RU'
@@ -168,6 +167,10 @@ CACHES = {
         'LOCATION': 'unique-snowflake',
     }
 }
+
+# SMS settings (если будете использовать)
+SMS_API_KEY = os.getenv('SMS_API_KEY')
+SMS_SENDER = os.getenv('SMS_SENDER', 'INVITE')
 
 # # Session settings
 # SESSION_COOKIE_AGE = 1209600  # 2 недели
