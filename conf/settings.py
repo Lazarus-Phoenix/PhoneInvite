@@ -8,7 +8,8 @@ load_dotenv()  # Загружаем переменные окружения из
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv("SECRET_KEY", 'django-insecure-default-key')
+# SECRET_KEY = os.getenv("SECRET_KEY", 'django-insecure-default-key')
+SECRET_KEY = 'django-insecure-_u2*(5w#957yl=xx-+gd$83aun3^jkfk9^2cxd7+!%bq9(kij%'
 
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
@@ -30,7 +31,7 @@ INSTALLED_APPS = [
     'phonenumber_field',
 
     # Local
-    'core.apps.CoreConfig',
+    'core',
 ]
 
 MIDDLEWARE = [
