@@ -2,19 +2,22 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from .services import send_verification_code, verify_code
+from rest_framework_simplejwt.tokens import RefreshToken
+from .models import User
 from .serializers import (
     PhoneSerializer,
     VerifyCodeSerializer,
     UserProfileSerializer,
-    InviteCodeSerializer
+    InviteCodeSerializer,
+    ReferralSerializer
 )
-from .models import User
-from django.contrib.auth import login
-from django.shortcuts import render
+from .services import send_verification_code, verify_code
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 class AuthView(APIView):
+    @swagger_auto_schema(request_body=PhoneSerializer)
     def post(self, request):
         serializer = PhoneSerializer(data=request.data)
         if serializer.is_valid():
@@ -25,6 +28,7 @@ class AuthView(APIView):
 
 
 class VerifyView(APIView):
+    @swagger_auto_schema(request_body=VerifyCodeSerializer)
     def post(self, request):
         serializer = VerifyCodeSerializer(data=request.data)
         if serializer.is_valid():
@@ -33,8 +37,12 @@ class VerifyView(APIView):
 
             if verify_code(phone, code):
                 user, created = User.objects.get_or_create(phone=phone)
-                login(request, user)
-                return Response({'status': 'success'})
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'status': 'success',
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                })
             return Response({'error': 'invalid code'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -42,10 +50,12 @@ class VerifyView(APIView):
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(responses={200: UserProfileSerializer})
     def get(self, request):
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data)
 
+    @swagger_auto_schema(request_body=InviteCodeSerializer)
     def post(self, request):
         user = request.user
         if user.activated_invite:
@@ -75,9 +85,11 @@ class ProfileView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def auth_page(request):
-    return render(request, 'core/auth.html')
+class ReferralsView(APIView):
+    permission_classes = [IsAuthenticated]
 
-
-def profile_page(request):
-    return render(request, 'core/profile.html')
+    @swagger_auto_schema(responses={200: ReferralSerializer(many=True)})
+    def get(self, request):
+        referrals = request.user.get_referrals()
+        serializer = ReferralSerializer(referrals, many=True)
+        return Response(serializer.data)

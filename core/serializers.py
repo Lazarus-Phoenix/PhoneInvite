@@ -12,16 +12,18 @@ class VerifyCodeSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    referrals = serializers.SerializerMethodField()
+    activated_invite = serializers.CharField(source='activated_invite.invite_code', read_only=True)
 
     class Meta:
         model = User
-        fields = ['phone', 'invite_code', 'activated_invite', 'referrals']
-        read_only_fields = ['phone', 'invite_code', 'referrals']
-
-    def get_referrals(self, obj):
-        return [user.phone for user in obj.get_referrals()]
+        fields = ['phone', 'invite_code', 'activated_invite']
 
 
 class InviteCodeSerializer(serializers.Serializer):
     invite_code = serializers.CharField(max_length=6)
+
+
+class ReferralSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['phone', 'date_joined']

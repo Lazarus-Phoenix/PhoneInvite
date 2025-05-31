@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'phonenumber_field',
+    'drf_yasg',
 
     # Local
     'core',
