@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'phonenumber_field',
+    'users'
     'core',
     'rest_framework',
     'drf_yasg',
