@@ -88,7 +88,7 @@ class ProfileView(APIView):
 class ReferralsView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(responses={200: ReferralSerializer(many=True)})
+    @swagger_auto_schema(responses={200: openapi.Response('Referrals list', ReferralSerializer(many=True))})
     def get(self, request):
         referrals = request.user.get_referrals()
         serializer = ReferralSerializer(referrals, many=True)

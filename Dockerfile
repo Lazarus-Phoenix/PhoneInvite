@@ -1,17 +1,18 @@
-FROM python:3.9
+# FROM python:3.10
+#
+# WORKDIR /app
+#
+# COPY requirements.txt .
+# RUN pip install --no-cache-dir -r requirements.txt
+#
+# COPY . .
+#
+# # Важно! Указываем правильный путь к manage.py
+# CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
-WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-# Важно! Указываем правильный путь к manage.py
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-
-
-# FROM python:3.9-slim
+# FROM python:3.10-slim
+#
 #
 # WORKDIR /code
 #

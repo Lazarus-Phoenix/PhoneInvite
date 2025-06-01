@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-_u2*(5w#957yl=xx-+gd$83aun3^jkfk9^2cxd7+!%bq9(kij%
 
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -23,16 +23,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third-party apps
-    'rest_framework',
     'rest_framework_simplejwt',
     'django_filters',
     'corsheaders',
     'phonenumber_field',
-    'drf_yasg',
-
-    # Local
     'core',
+    'rest_framework',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -71,13 +68,13 @@ WSGI_APPLICATION = 'conf.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.getenv("NAME", 'referral_db'),
-        "USER": os.getenv("USER", 'skypro'),
-        "PASSWORD": os.getenv("PASSWORD", 'skypro'),
-        "HOST": os.getenv("HOST", 'localhost'),
-        "PORT": os.getenv("PORT", '5432'),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('POSTGRES_HOST'),
+        'PORT': os.getenv('POSTGRES_PORT'),
     }
 }
 
