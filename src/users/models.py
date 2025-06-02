@@ -21,7 +21,7 @@ class User(AbstractUser):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='activated_referrals'  # Изменили related_name здесь
+        related_name='activated_referrals'
     )
 
     USERNAME_FIELD = 'phone'
@@ -43,12 +43,19 @@ class User(AbstractUser):
     def __str__(self):
         return self.phone
 
+class AuthCode(models.Model):
+    phone = models.CharField(max_length=17)
+    code = models.CharField(max_length=4)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.phone}: {self.code}"
 
 class Referral(models.Model):
     referrer = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='referrals'  # Оставили original related_name здесь
+        related_name='referrals'
     )
     referred_user = models.OneToOneField(
         User,
