@@ -13,6 +13,17 @@ import random
 import time
 from django.shortcuts import get_object_or_404
 
+from rest_framework.throttling import AnonRateThrottle
+
+class AuthPhoneThrottle(AnonRateThrottle):
+    '''
+     устанавливает лимит в 3 запроса в час c одного IP
+    '''
+    rate = '3/hour'
+
+class AuthPhoneView(APIView): # определяется представление для обработки запросов
+    throttle_classes = [AuthPhoneThrottle] # подключается созданный throttle к этому view
+
 
 class AuthView(APIView):
     def post(self, request):
