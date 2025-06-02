@@ -1,13 +1,28 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import User, AuthCode
+import time
+
+
+class PhoneSerializer(serializers.Serializer):
+    phone = serializers.CharField(max_length=17)
+
+
+class AuthCodeSerializer(serializers.Serializer):
+    phone = serializers.CharField(max_length=17)
+    code = serializers.CharField(max_length=4)
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    referred_users = serializers.SerializerMethodField()
+    referrals = serializers.SerializerMethodField()
 
     class Meta:
-        model = CustomUser
-        fields = ['phone_number', 'invite_code', 'activated_invite', 'referred_users']
+        model = User
+        fields = ['phone', 'invite_code', 'activated_invite', 'referrals']
+        read_only_fields = ['phone', 'invite_code', 'referrals']
 
-    def get_referred_users(self, obj):
-        return list(CustomUser.objects.filter(activated_invite=obj.invite_code).values_list('phone_number', flat=True))
+    def get_referrals(self, obj):
+        return list(obj.referrals.values_list('phone', flat=True))
+
+
+class InviteCodeSerializer(serializers.Serializer):
+    invite_code = serializers.CharField(max_length=6)
