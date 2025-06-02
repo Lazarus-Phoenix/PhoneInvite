@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, AuthCode
+from .models import User
 import time
 
 
@@ -21,7 +21,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ['phone', 'invite_code', 'referrals']
 
     def get_referrals(self, obj):
-        return list(obj.referrals.values_list('phone', flat=True))
+        return list(obj.activated_referrals.values_list('phone', flat=True))
 
 
 class InviteCodeSerializer(serializers.Serializer):

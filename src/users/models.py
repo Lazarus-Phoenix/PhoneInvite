@@ -15,14 +15,13 @@ class User(AbstractUser):
         max_length=17,
         unique=True
     )
-    invite_code = models.CharField(max_length=6, null=True, blank=True)
-    used_invite_code = models.CharField(max_length=6, null=True, blank=True)
+    invite_code = models.CharField(max_length=6, unique=True, blank=True)
     activated_invite = models.ForeignKey(
         'self',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='referrals'
+        related_name='activated_referrals'  # Изменили related_name здесь
     )
 
     USERNAME_FIELD = 'phone'
@@ -44,18 +43,19 @@ class User(AbstractUser):
     def __str__(self):
         return self.phone
 
-    otp = models.CharField(max_length=4, null=True, blank=True)
-    otp_expiry = models.DateTimeField(null=True, blank=True)
 
-class AuthCode(models.Model):
-    phone = models.CharField(max_length=17)
-    code = models.CharField(max_length=4)
+class Referral(models.Model):
+    referrer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='referrals'  # Оставили original related_name здесь
+    )
+    referred_user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='referral'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.phone}: {self.code}"
-
-class Referral(models.Model):
-    referrer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='referrals')
-    referred = models.ForeignKey(User, on_delete=models.CASCADE, related_name='referrer_of')
-    created_at = models.DateTimeField(auto_now_add=True)
+        return f"{self.referrer.phone} -> {self.referred_user.phone}"
