@@ -169,7 +169,7 @@ SMS_SENDER = os.getenv('SMS_SENDER', 'INVITE')
 
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
-        'api_key': {
+        'Bearer': {
             'type': 'apiKey',
             'in': 'header',
             'name': 'Authorization'
