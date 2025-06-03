@@ -1,10 +1,20 @@
 from rest_framework import serializers
+from phonenumbers import parse, is_valid_number
 from .models import User
 import time
 
 
 class PhoneSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=17)
+
+    def validate_phone(self, value):
+        try:
+            parsed = parse(value, None)
+            if not is_valid_number(parsed):
+                raise serializers.ValidationError("Invalid phone number")
+            return value
+        except:
+            raise serializers.ValidationError("Invalid phone number format")
 
 
 class AuthCodeSerializer(serializers.Serializer):

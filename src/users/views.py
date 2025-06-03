@@ -12,20 +12,19 @@ from .serializers import (
 import random
 import time
 from django.shortcuts import get_object_or_404
-
 from rest_framework.throttling import AnonRateThrottle
-
-class AuthPhoneThrottle(AnonRateThrottle):
-    '''
-     устанавливает лимит в 3 запроса в час c одного IP
-    '''
-    rate = '3/hour'
-
-class AuthPhoneView(APIView): # определяется представление для обработки запросов
-    throttle_classes = [AuthPhoneThrottle] # подключается созданный throttle к этому view
+from rest_framework.authtoken.models import Token
 
 
-class AuthView(APIView):
+# class AuthPhoneThrottle(AnonRateThrottle):
+#     '''
+#      устанавливает лимит в 3 запроса в час c одного IP
+#     '''
+#     rate = '3/hour'
+
+class PhoneAuthView(APIView):
+    permission_classes = []
+    # throttle_classes = [AuthPhoneThrottle] # подключается созданный throttle к этому view
     def post(self, request):
         serializer = PhoneSerializer(data=request.data)
         if serializer.is_valid():
@@ -39,7 +38,7 @@ class AuthView(APIView):
             time.sleep(2)
 
             return Response(
-                {'detail': 'Auth code sent'},
+                {f"detail: Auth code sent {code}"},
                 status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -59,8 +58,15 @@ class VerifyView(APIView):
 
             if auth_code:
                 user, created = User.objects.get_or_create(phone=phone)
+                if created:
+                    user.set_unusable_password()  # Устанавливаем "неиспользуемый" пароль
+                    user.save()
+
+                # Создаём или получаем токен для пользователя
+                token, created = Token.objects.get_or_create(user=user)
+
                 return Response(
-                    {'token': user.auth_token.key},
+                    {'token': token.key},
                     status=status.HTTP_200_OK
                 )
             return Response(

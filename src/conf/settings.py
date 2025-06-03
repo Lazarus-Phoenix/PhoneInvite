@@ -130,6 +130,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -152,12 +153,12 @@ PHONENUMBER_DEFAULT_REGION = 'RU'
 PHONENUMBER_DB_FORMAT = 'NATIONAL'
 
 # Cache settings (для хранения кодов подтверждения)
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-    }
-}
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#         'LOCATION': 'unique-snowflake',
+#     }
+# }
 
 # SMS settings (если будете использовать)
 SMS_API_KEY = os.getenv('SMS_API_KEY')
@@ -169,7 +170,7 @@ SMS_SENDER = os.getenv('SMS_SENDER', 'INVITE')
 
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
-        'Bearer': {
+        'apiKey': {
             'type': 'apiKey',
             'in': 'header',
             'name': 'Authorization'
