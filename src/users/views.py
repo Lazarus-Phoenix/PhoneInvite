@@ -58,12 +58,14 @@ class VerifyView(APIView):
             ).order_by('-created_at').first()
 
             if auth_code:
-                user, created = User.objects.get_or_create(phone=phone)
-                if created:
-                    user.set_unusable_password()  # Устанавливаем "неиспользуемый" пароль
+                try:
+                    user = User.objects.get(phone=phone)
+                except User.DoesNotExist:
+                    # Создаем пользователя без username
+                    user = User(phone=phone)
+                    user.set_unusable_password()
                     user.save()
 
-                # Создаём или получаем токен для пользователя
                 token, created = Token.objects.get_or_create(user=user)
 
                 return Response(
