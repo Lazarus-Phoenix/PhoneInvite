@@ -23,7 +23,7 @@ services:
     env_file:
       - ./.env
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
+      test: [ "CMD", "curl", "-f", "http://0.0.0.0:8000/" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -57,8 +57,8 @@ services:
     image: redis:alpine
     volumes:
       - redis_data:/data
-#    env_file:
-#      - ./.env
+    env_file:
+      - ./.env
     healthcheck:
       test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
       interval: 1s

@@ -74,11 +74,11 @@ WSGI_APPLICATION = 'conf.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'POSTGRES_DB': os.getenv('POSTGRES_DB'),
-        'POSTGRES_USER': os.getenv('POSTGRES_USER'),
-        'POSTGRES_PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'POSTGRES_HOST': os.getenv('POSTGRES_HOST'),
-        'POSTGRES_PORT': os.getenv('POSTGRES_PORT'),
+        'NAME': os.getenv('POSTGRES_DB'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('POSTGRES_HOST'),
+        'PORT': os.getenv('POSTGRES_PORT'),
     }
 }
 
@@ -169,9 +169,9 @@ CELERY_TIMEZONE = TIME_ZONE
 # Флаг отслеживания выполнения задач
 CELERY_TASK_TRACK_STARTED = True
 
-# CELERY_ACCEPT_CONTENT = ['json']
-# CELERY_TASK_SERIALIZER = 'json'
-# CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 # Максимальное время на выполнение задачи
 CELERY_TASK_TIME_LIMIT = 30 * 60
@@ -194,7 +194,7 @@ PersistentScheduler хранит расписание в локальном фа
 CELERY_BEAT_SCHEDULE = {
     "check_last_login": {
         "task": "users.tasks.check_last_login",
-        "schedule": timedelta(days=1),
+        "schedule": timedelta(minutes=1),
     },
 }
 
