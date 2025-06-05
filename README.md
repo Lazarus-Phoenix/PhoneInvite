@@ -68,6 +68,6 @@ docker-compose exec web python manage.py test
 
 Доступна по адресу: http://localhost:8000/docs/
 
-## Postman коллекция.
+## Postman коллекция
 
 Доступна в корне проекта: postman_collection.json
