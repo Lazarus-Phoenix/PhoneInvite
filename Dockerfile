@@ -13,7 +13,7 @@ RUN apt-get update && \
        rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем Poetry
-RUN pip install poetry
+RUN pip install poetry && poetry --version
 
 # Копируем файлы зависимостей
 COPY poetry.lock pyproject.toml ./
@@ -26,8 +26,9 @@ RUN poetry config virtualenvs.create false && \
 COPY . .
 
 # Настройка переменных окружения
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
+# ENV PYTHONUNBUFFERED=1
+# ENV PYTHONDONTWRITEBYTECODE=1
+ENV POETRY_VIRTUALENVS_CREATE=false
 
 # Создаем директорию для статики
 # Если Nginx не используется, эта директория может быть не нужна на этапе сборки Dockerfile.
