@@ -30,7 +30,9 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
 # Создаем директорию для статики
-RUN mkdir -p /drf_project/staticfiles && chmod -R 755 /drf_project/staticfiles
+# Если Nginx не используется, эта директория может быть не нужна на этапе сборки Dockerfile.
+# Django collectstatic создаст STATIC_ROOT при необходимости.
+# RUN mkdir -p /app/staticfiles && chmod -R 755 /app/staticfiles
 
 # Открываем порт 8000 для взаимодействия с приложением
 EXPOSE 8000
@@ -39,4 +41,4 @@ EXPOSE 8000
 # CMD ["poetry", "run", "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
 
 # Определяем команду для запуска приложения
-# CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+# CMD ["poetry", "run", "python", "src/manage.py", "runserver", "0.0.0.0:8000"]

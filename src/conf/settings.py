@@ -1,3 +1,4 @@
+import sys
 from datetime import timedelta
 from pathlib import Path
 
@@ -8,8 +9,8 @@ load_dotenv()  # Загружаем переменные окружения из
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECRET_KEY = os.getenv("SECRET_KEY", 'django-insecure-default-key')
-SECRET_KEY = 'django-insecure-_u2*(5w#957yl=xx-+gd$83aun3^jkfk9^2cxd7+!%bq9(kij%'
+SECRET_KEY = os.getenv("SECRET_KEY", 'django-insecure-default-key')
+# SECRET_KEY = 'django-insecure-_u2*(5w#957yl=xx-+gd$83aun3^jkfk9^2cxd7+!%bq9(kij%'
 
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
@@ -71,16 +72,25 @@ WSGI_APPLICATION = 'conf.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('POSTGRES_HOST'),
-        'PORT': os.getenv('POSTGRES_PORT'),
+
+if "test" in sys.argv:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "test_db.sqlite3",
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('POSTGRES_DB'),
+            'USER': os.getenv('POSTGRES_USER'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+            'HOST': os.getenv('POSTGRES_HOST'),
+            'PORT': os.getenv('POSTGRES_PORT'),
+        }
+    }
 
 
 # Custom User model
@@ -157,11 +167,11 @@ PHONENUMBER_DB_FORMAT = 'NATIONAL'
 
 # URL-адрес брокера сообщений
 CELERY_BROKER_URL = os.getenv(
-    "CELERY_BROKER_URL", "redis://redis:6379/0"
+    "CELERY_BROKER_URL"
 )  # Например, Redis, который по умолчанию работает на порту 6379
 
 # URL-адрес брокера результатов, также Redis
-CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/1")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 
 # Часовой пояс для работы Celery
 CELERY_TIMEZONE = TIME_ZONE
