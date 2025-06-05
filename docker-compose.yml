@@ -1,0 +1,119 @@
+services:
+  web:
+    build: .
+    # Команда разработки: применяет миграции и запускает сервер
+    command: sh -c "poetry run python src/manage.py migrate --noinput && poetry run python src/manage.py runserver 0.0.0.0:8000"
+    # Команда разработки на удалённом сервере
+#    command: sh -c "poetry run python src/manage.py --noinput && poetry run python src/manage.py runserver 0.0.0.0:8000"
+    # команда продакшн
+#    command: poetry run python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000
+#   Команда локальной разработки
+#    command: poetry run python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+#    expose:
+#      - "8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - ./.env
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+#  nginx:
+#    build:
+#      context: ./nginx
+#    ports:
+#      - "80:80"
+#    volumes:
+#      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+#      - static_volume:/drf_project/staticfiles/
+#    depends_on:
+#      - web
+
+  db:
+    image: postgres
+    env_file:
+      - ./.env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    healthcheck:
+      test: [ 'CMD-SHELL', '-c', 'pg_isready -U postgres -d postgres' ]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis_data:/data
+#    env_file:
+#      - ./.env
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+
+  celery:
+    user: "1000:1000"
+    environment:
+      C_FORCE_ROOT: "false"
+    build: .
+    command:
+      poetry run celery -A src.conf worker -l INFO --concurrency=5 --pool=gevent
+    restart: on-failure
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - ./.env
+
+  celery-beat:
+    environment:
+      POETRY_VIRTUALENVS_CREATE: "false"
+    build: .
+    command:
+      sh -c "poetry run python src/manage.py migrate django_celery_beat --noinput && \
+      poetry run celery -A src.conf beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler"
+#      poetry run python manage.py migrate django_celery_beat &&
+#      poetry run celery -A config beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+#      poetry run celery -A config beat --loglevel=info
+#    restart: on-failure
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - celerybeat_volume:/var/lib/celery
+    depends_on:
+      - redis
+      - db
+      - web
+    env_file:
+      - ./.env
+    # healthcheck для celery-beat может быть сложным, так как он не слушает сетевые порты.
+    # Можно проверять наличие процесса или лог-файлы, если это критично.
+    # Пример healthcheck для Celery worker (не beat):
+    # healthcheck:
+    #   test: ["CMD-SHELL", "celery -A src.conf inspect ping -d celery@$${HOSTNAME} | grep -q pong"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+
+
+volumes:
+  pg_data:
+  static_volume:
+  redis_data:
+  celerybeat_volume:

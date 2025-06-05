@@ -31,6 +31,9 @@ INSTALLED_APPS = [
     'users',
     'rest_framework',
     'drf_yasg',
+    "django_celery_beat",
+    "django_celery_results",
+    'celery'
 ]
 
 MIDDLEWARE = [
@@ -71,11 +74,11 @@ WSGI_APPLICATION = 'conf.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('POSTGRES_HOST'),
-        'PORT': os.getenv('POSTGRES_PORT'),
+        'POSTGRES_DB': os.getenv('POSTGRES_DB'),
+        'POSTGRES_USER': os.getenv('POSTGRES_USER'),
+        'POSTGRES_PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'POSTGRES_HOST': os.getenv('POSTGRES_HOST'),
+        'POSTGRES_PORT': os.getenv('POSTGRES_PORT'),
     }
 }
 
@@ -138,11 +141,9 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=300),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
-
-
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = True  # Для разработки, в продакшене нужно ограничить
@@ -152,11 +153,69 @@ CORS_ALLOW_CREDENTIALS = True
 PHONENUMBER_DEFAULT_REGION = 'RU'
 PHONENUMBER_DB_FORMAT = 'NATIONAL'
 
-# Cache settings (для хранения кодов подтверждения)
+# Настройки для Celery
+
+# URL-адрес брокера сообщений
+CELERY_BROKER_URL = os.getenv(
+    "CELERY_BROKER_URL", "redis://redis:6379/0"
+)  # Например, Redis, который по умолчанию работает на порту 6379
+
+# URL-адрес брокера результатов, также Redis
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/1")
+
+# Часовой пояс для работы Celery
+CELERY_TIMEZONE = TIME_ZONE
+
+# Флаг отслеживания выполнения задач
+CELERY_TASK_TRACK_STARTED = True
+
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_TASK_SERIALIZER = 'json'
+# CELERY_RESULT_SERIALIZER = 'json'
+
+# Максимальное время на выполнение задачи
+CELERY_TASK_TIME_LIMIT = 30 * 60
+"""
+DatabaseScheduler хранит все расписания задач в базе данных Django.
+Это позволяет управлять задачами через административную панель Django и изменять расписание в реальном времени.
+"""
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+"""
+PersistentScheduler хранит расписание в локальном файле celerybeat-schedule.
+Это простой вариант, но менее гибкий в управлении задачами.
+"""
+# CELERY_BEAT_SCHEDULER = "celery.beat.PersistentScheduler"
+
+"""
+Запуск задачи раз в день при работающем CELERY
+"""
+
+CELERY_BEAT_SCHEDULE = {
+    "check_last_login": {
+        "task": "users.tasks.check_last_login",
+        "schedule": timedelta(days=1),
+    },
+}
+
+# # Cache settings (для хранения кодов подтверждения)
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#         'LOCATION': 'unique-snowflake',
+#     }
+# }
+
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://redis:6379/1",  # Используем БД 1 (не 0 как для Celery)
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SOCKET_CONNECT_TIMEOUT": 5,  # Таймаут подключения в секундах
+            "SOCKET_TIMEOUT": 5,          # Таймаут операций
+            "IGNORE_EXCEPTIONS": True,    # Продолжать работу при ошибках Redis
+        }
     }
 }
 

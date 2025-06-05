@@ -1,33 +1,41 @@
-# Используем официальный образ Python
-FROM python:3.11-slim
+# Указываем базовый образ
+FROM python:3.12-slim
 
-# Устанавливаем переменные окружения для Python
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Устанавливаем рабочую директорию
+# Устанавливаем рабочую директорию в контейнере
 WORKDIR /app
+# Явно устанавливаем django
+# RUN pip install django
+# Обновляемся
+RUN apt-get update && \
+       apt-get install -y gcc libpq-dev && \
+       apt-get clean && \
+       rm -rf /var/lib/apt/lists/*
 
-# Устанавливаем зависимости системы, если нужны (например, для psycopg2)
-RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
+# Устанавливаем Poetry
+RUN pip install poetry
 
-# Копируем файлы зависимостей и устанавливаем их
-COPY poetry.lock pyproject.toml /app/
-RUN pip install poetry && \
-    poetry config virtualenvs.create false && \
-    poetry install --without dev --no-interaction --no-ansi --no-root
+# Копируем файлы зависимостей
+COPY poetry.lock pyproject.toml ./
 
-# Копируем исходный код проекта
-COPY ./src /app/src
+# Устанавливаем зависимости с помощью Poetry (исправленная часть)
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi --no-root
 
-# Копируем статические файлы (если есть)
-# COPY ./static /app/static
-COPY . /app/
+# Копируем остальные файлы проекта в контейнер
+COPY . .
 
-# Открываем порт, на котором будет работать приложение
+# Настройка переменных окружения
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Создаем директорию для статики
+RUN mkdir -p /drf_project/staticfiles && chmod -R 755 /drf_project/staticfiles
+
+# Открываем порт 8000 для взаимодействия с приложением
 EXPOSE 8000
 
-# Запускаем приложение
-# Команда по умолчанию для запуска приложения (будет переопределена в docker-compose.yml)
-# CMD ["python", "src/manage.py", "runserver", "0.0.0.0:8000"]
-# CMD ["gunicorn", "PhoneInvite.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Запуск команды
+# CMD ["poetry", "run", "gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
+
+# Определяем команду для запуска приложения
+# CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
