@@ -1,18 +1,34 @@
-FROM python:3.11
+# Используем официальный образ Python
+FROM python:3.11-slim
 
+# Устанавливаем переменные окружения для Python
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем файл зависимостей
-COPY requirements.txt /app/
+# Устанавливаем зависимости системы, если нужны (например, для psycopg2)
+# RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/lists/*
 
-# Устанавливаем зависимости
-RUN pip install --no-cache-dir -r requirements.txt
+# Копируем файлы зависимостей и устанавливаем их
+COPY poetry.lock pyproject.toml /app/
+RUN pip install poetry && poetry config virtualenvs.create false && poetry install --no-dev --no-interaction --no-ansi
+RUN pip install --no-cache-dir poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi --only main
 
 # Копируем исходный код проекта
+COPY ./src /app/src
+
+# Копируем статические файлы (если есть)
+# COPY ./static /app/static
 COPY . /app/
 
- # Открываем порт, на котором будет работать приложение
- EXPOSE 8000
+# Открываем порт, на котором будет работать приложение
+EXPOSE 8000
 
-# Важно! Указываем правильный путь к manage.py
+# Запускаем приложение
+# Команда по умолчанию для запуска приложения (будет переопределена в docker-compose.yml)
 # CMD ["python", "src/manage.py", "runserver", "0.0.0.0:8000"]
+# CMD ["gunicorn", "PhoneInvite.wsgi:application", "--bind", "0.0.0.0:8000"]
