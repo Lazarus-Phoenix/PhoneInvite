@@ -1,32 +1,18 @@
-FROM python:3.10
+FROM python:3.11
 
 WORKDIR /app
 
-COPY requirements.txt .
+# Копируем файл зависимостей
+COPY requirements.txt /app/
+
+# Устанавливаем зависимости
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Копируем исходный код проекта
+COPY . /app/
+
+ # Открываем порт, на котором будет работать приложение
+ EXPOSE 8000
 
 # Важно! Указываем правильный путь к manage.py
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-
-
-# FROM python:3.10-slim
-#
-#
-# WORKDIR /code
-#
-# ENV PYTHONDONTWRITEBYTECODE 1
-# ENV PYTHONUNBUFFERED 1
-#
-# RUN apt-get update && apt-get install -y \
-#     gcc \
-#     python3-dev \
-#     libpq-dev
-#
-# COPY requirements.txt .
-# RUN pip install --no-cache-dir -r requirements.txt
-#
-# COPY . .
-#
-# CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# CMD ["python", "src/manage.py", "runserver", "0.0.0.0:8000"]

@@ -2,29 +2,109 @@ version: '3.8'
 
 services:
   db:
-    image: postgres 13
-    environment:
-      POSTGRES_DB: referral_db
-      POSTGRES_USER: skypro
-      POSTGRES_PASSWORD: skypro
+    image: postgres:13
+    container_name: phone_invite_db
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
 
+  redis:
+    image: redis:alpine
+    container_name: phone_invite_redis
+    ports:
+      - "6379:6379"
+
   web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phone_invite_web
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - .:/code
+      - .:/app  # Монтируем весь проект для live reload
     ports:
       - "8000:8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG:-True}
+      - POSTGRES_HOST=db # Используем имя сервиса для хоста БД
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      - SMSAERO_EMAIL=${SMSAERO_EMAIL}
+      - SMSAERO_API_KEY=${SMSAERO_API_KEY}
     depends_on:
       - db
+      - redis
+    env_file:
+      - .env
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phone_invite_celery
+    command: celery -A src.PhoneInvite.celery worker -l info # Убедись, что путь к celery app правильный
+    volumes:
+      - .:/app # Монтируем весь проект
     environment:
-      DATABASE_URL: postgres://skypro:skypro@db:5432/referral_db
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG:-True}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis:6379/0}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      - SMSAERO_EMAIL=${SMSAERO_EMAIL}
+      - SMSAERO_API_KEY=${SMSAERO_API_KEY}
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - .env
+
 volumes:
   postgres_data:
+
+#version: '3.8'
+#
+#services:
+#  db:
+#    image: postgres 13
+#    environment:
+#      POSTGRES_DB: referral_db
+#      POSTGRES_USER: skypro
+#      POSTGRES_PASSWORD: skypro
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data/
+#    ports:
+#      - "5432:5432"
+#
+#  web:
+#    build: .
+#    command: python manage.py runserver 0.0.0.0:8000
+#    volumes:
+#      - .:/code
+#    ports:
+#      - "8000:8000"
+#    depends_on:
+#      - db
+#    environment:
+#      DATABASE_URL: postgres://skypro:skypro@db:5432/referral_db
+#volumes:
+#  postgres_data:
 
 
 #version: '3.9'
