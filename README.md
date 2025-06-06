@@ -3,7 +3,7 @@
 ## Установка проекта
 
 1. Клонировать репозиторий:
-```bash
+```
 https://github.com/Lazarus-Phoenix/PhoneInvite/tree/feature
 cd PhoneInvite
 ```
