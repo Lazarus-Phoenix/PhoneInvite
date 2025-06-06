@@ -8,7 +8,7 @@ https://github.com/Lazarus-Phoenix/PhoneInvite/tree/feature
 cd PhoneInvite
 ```
 
-2. Запустить Docker контейнеры:
+2. Запустить Docker контейнеры: (Аккуратнее с кнопками! , запускается с окна ниже напрямую из README)
 ```bash
 docker-compose down -v
 docker-compose build --no-cache
