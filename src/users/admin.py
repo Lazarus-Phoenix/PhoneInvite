@@ -1,6 +1,5 @@
 from django.contrib import admin
-
-from src.users.models import User
+from rest_framework.authtoken.admin import User
 
 
 @admin.register(User)

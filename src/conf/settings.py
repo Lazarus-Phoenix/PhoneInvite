@@ -230,6 +230,12 @@ SMS_SENDER = os.getenv("SMS_SENDER", "INVITE")
 # SESSION_COOKIE_AGE = 1209600  # 2 недели
 # SESSION_SAVE_EVERY_REQUEST = True
 
+REDOC_SETTINGS = {
+    'LAZY_RENDERING': True,  # Ленивая загрузка элементов
+    'HIDE_HOSTNAME': False,  # Показывать hostname
+    'EXPAND_RESPONSES': 'all',  # Развернуть все ответы по умолчанию
+}
+
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
         "Phone num sms or token": {
