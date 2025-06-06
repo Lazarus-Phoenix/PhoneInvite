@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from phonenumbers import parse, is_valid_number
 from .models import User
-import time
 
 
 class PhoneSerializer(serializers.Serializer):
@@ -27,11 +26,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['phone', 'invite_code', 'activated_invite', 'referrals']
-        read_only_fields = ['phone', 'invite_code', 'referrals']
+        fields = ["phone", "invite_code", "activated_invite", "referrals"]
+        read_only_fields = ["phone", "invite_code", "referrals"]
 
     def get_referrals(self, obj):
-        return list(obj.activated_referrals.values_list('phone', flat=True))
+        return list(obj.activated_referrals.values_list("phone", flat=True))
 
 
 class InviteCodeSerializer(serializers.Serializer):

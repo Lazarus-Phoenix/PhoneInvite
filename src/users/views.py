@@ -7,12 +7,10 @@ from .serializers import (
     PhoneSerializer,
     AuthCodeSerializer,
     UserProfileSerializer,
-    InviteCodeSerializer
+    InviteCodeSerializer,
 )
 import random
 import time
-from django.shortcuts import get_object_or_404
-from rest_framework.throttling import AnonRateThrottle
 from rest_framework.authtoken.models import Token
 
 
@@ -22,13 +20,15 @@ from rest_framework.authtoken.models import Token
 #     '''
 #     rate = '3/hour'
 
+
 class PhoneAuthView(APIView):
     permission_classes = []
+
     # throttle_classes = [AuthPhoneThrottle] # подключается созданный throttle к этому view
     def post(self, request):
         serializer = PhoneSerializer(data=request.data)
         if serializer.is_valid():
-            phone = serializer.validated_data['phone']
+            phone = serializer.validated_data["phone"]
 
             # Имитация отправки кода
             code = str(random.randint(1000, 9999))
@@ -38,24 +38,25 @@ class PhoneAuthView(APIView):
             time.sleep(2)
 
             return Response(
-                {f"detail: Auth code sent {code}"},
-                status=status.HTTP_200_OK
+                {f"detail: Auth code sent {code}"}, status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class VerifyView(APIView):
     permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = AuthCodeSerializer(data=request.data)
         if serializer.is_valid():
-            phone = serializer.validated_data['phone']
-            code = serializer.validated_data['code']
+            phone = serializer.validated_data["phone"]
+            code = serializer.validated_data["code"]
 
-            auth_code = AuthCode.objects.filter(
-                phone=phone,
-                code=code
-            ).order_by('-created_at').first()
+            auth_code = (
+                AuthCode.objects.filter(phone=phone, code=code)
+                .order_by("-created_at")
+                .first()
+            )
 
             if auth_code:
                 try:
@@ -68,13 +69,9 @@ class VerifyView(APIView):
 
                 token, created = Token.objects.get_or_create(user=user)
 
-                return Response(
-                    {'token': token.key},
-                    status=status.HTTP_200_OK
-                )
+                return Response({"token": token.key}, status=status.HTTP_200_OK)
             return Response(
-                {'detail': 'Invalid code'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Invalid code"}, status=status.HTTP_400_BAD_REQUEST
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -89,31 +86,31 @@ class ProfileView(APIView):
     def post(self, request):
         serializer = InviteCodeSerializer(data=request.data)
         if serializer.is_valid():
-            invite_code = serializer.validated_data['invite_code']
+            invite_code = serializer.validated_data["invite_code"]
 
             if request.user.activated_invite:
                 return Response(
-                    {'detail': 'You already activated an invite code'},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {"detail": "You already activated an invite code"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             try:
                 referrer = User.objects.get(invite_code=invite_code)
                 if referrer == request.user:
                     return Response(
-                        {'detail': 'You cannot use your own invite code'},
-                        status=status.HTTP_400_BAD_REQUEST
+                        {"detail": "You cannot use your own invite code"},
+                        status=status.HTTP_400_BAD_REQUEST,
                     )
 
                 request.user.activated_invite = referrer
                 request.user.save()
                 return Response(
-                    {'detail': 'Invite code activated successfully'},
-                    status=status.HTTP_200_OK
+                    {"detail": "Invite code activated successfully"},
+                    status=status.HTTP_200_OK,
                 )
             except User.DoesNotExist:
                 return Response(
-                    {'detail': 'Invalid invite code'},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {"detail": "Invalid invite code"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
