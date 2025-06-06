@@ -1,0 +1,23 @@
+# Игнорируем системные и временные файлы
+**/.git/
+**/.github/
+**/.vs/
+**/.vscode/
+**/bin/
+**/obj/
+
+# Игнорируем тесты (если не нужны в образе)
+PhoneInvite.Tests/
+
+# Игнорируем локальные конфиги
+**/appsettings.Development.json
+
+# Игнорируем файлы Docker (чтобы избежать рекурсии)
+
+docker-compose.yml
+.dockerignore
+
+# Игнорируем пользовательские файлы IDE
+.idea/
+*.user
+*.suo
